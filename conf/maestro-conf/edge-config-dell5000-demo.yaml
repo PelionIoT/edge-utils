@@ -13,7 +13,7 @@ processes:
 platform_readers:
   - platform: "fsonly"
     params:
-      identityPath: "/var/snap/pelion-edge/current/userdata/edge_gw_config/identity.json"
+      identityPath: "/var/snap/pelion-edge/current/userdata/edge_gw_identity/identity.json"
 var_defs:
    - key: "SNAP_DATA"
      value: "/var/snap/pelion-edge/current"
@@ -30,7 +30,7 @@ var_defs:
    - key: "MAESTRO_RUNNER_DIR"
      value: "{{SNAP}}/wigwag/devicejs-core-modules/maestroRunner"
    - key: "SSL_CERTS_PATH"
-     value: "{{SNAP_DATA}}/userdata/edge_gw_config/.ssl"
+     value: "{{SNAP_DATA}}/userdata/edge_gw_identity/.ssl"
    - key: "LOCAL_DEVICEDB_PORT"
      value: 9000
    - key: "LOCAL_DATABASE_STORAGE_DIRECTORY"
