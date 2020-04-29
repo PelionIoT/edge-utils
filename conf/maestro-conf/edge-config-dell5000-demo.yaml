@@ -8,8 +8,6 @@ scratchPath: /tmp/maestro/scratch
 clientId: "{{ARCH_SERIAL_NUMBER}}"
 network:
     disable: true
-processes:
-    reaper_interval: 1500
 platform_readers:
   - platform: "fsonly"
     params:
