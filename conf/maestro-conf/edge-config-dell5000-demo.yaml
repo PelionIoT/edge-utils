@@ -7,7 +7,14 @@ imagePath: /tmp/maestro/images
 scratchPath: /tmp/maestro/scratch
 clientId: "{{ARCH_SERIAL_NUMBER}}"
 network:
-    disable: true
+    interfaces:
+    - if_name: wlan0
+      clear_addresses: true
+      wifi_ssid: "ssid"
+      wifi_password: "password"
+      dhcpv4: true
+      # set the mac addresses for this interface also:
+      hw_addr: "{{ARCH_ETHERNET_MAC}}"
 processes:
     reaper_interval: 1500
 platform_readers:
