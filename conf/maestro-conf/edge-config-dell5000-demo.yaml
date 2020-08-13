@@ -193,5 +193,5 @@ static_file_generators:
      output_file: "{{SSL_CERTS_PATH}}/ca-chain.cert.pem"
    - name: "relayTerm"
      template_file: "{{SNAP}}/wigwag/wwrelay-utils/conf/maestro-conf/relayTerm.template.json"
-     output_file: "/var/snap/pelion-edge/x1/relayterm-config.json"
+     output_file: "{{SNAP_DATA}}/wigwag/etc/relayterm-config.json"
 config_end: true
