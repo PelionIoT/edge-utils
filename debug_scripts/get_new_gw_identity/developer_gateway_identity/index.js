@@ -158,8 +158,11 @@ function findServiceAddressFromMDS(server_uri, service_name) {
     var systemtest = /.*mds-systemtest.*/;
     var newSystemtest = /.*lwm2m-os2.*/;
 
+    // Prod instances
     var usEast = /.*lwm2m.us-east-1.*/;
     var apNortheast = /.*lwm2m.ap-northeast-1.*/;
+    var euWest = /.*lwm2m.eu-west-1.*/;
+
     if (integrationLab.exec(server_uri) || newIntegrationLab.exec(server_uri)) {
         return "https://" + service_name + ".mbedcloudintegration.net";
     } else if (sysTest4.exec(server_uri)) {
@@ -172,6 +175,8 @@ function findServiceAddressFromMDS(server_uri, service_name) {
         return "https://" + service_name + ".mbedcloudstaging.net";
     } else if (usEast.exec(server_uri)) {
         return "https://" + service_name + ".us-east-1.mbedcloud.com";
+    } else if (euWest.exec(server_uri)) {
+        return "https://" + service_name + ".eu-west-1.mbedcloud.com";
     } else if (apNortheast.exec(server_uri)) {
         return "https://" + service_name + ".ap-northeast-1.mbedcloud.com";
     } else {
