@@ -151,7 +151,7 @@ function findEdgeK8sServiceAddressFromMDS(server_uri) {
 function findServiceAddressFromMDS(server_uri, service_name) {
 
     var integrationLab = /.*mds-integration-lab.*/;
-    var newIntegrationLab = /.*lwm2m-integration-lab.*/;
+    var newIntegrationLab = /.*lwm2m.*integration-lab.*/;
 
     var sysTest4 = /.*mds-syte4-sandbox.*/;
 
