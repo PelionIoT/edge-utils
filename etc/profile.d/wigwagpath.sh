@@ -31,8 +31,7 @@ if [ -x /usr/bin/dircolors ]; then
 fi
 
 export NODE_PATH="/wigwag/devicejs-core-modules/node_modules/" 
-export LD_PRELOAD="/usr/lib/libcrypto.so.1.0.2"
+export LD_PRELOAD="/usr/lib/libcrypto.so.1.1"
 export PATH="/wigwag/system/bin:/wigwag/system/lib:/wigwag/system/lib/bash:$PATH"
 export LD_LIBRARY_PATH="/wigwag/system/lib:/wigwag/system/lib/bash:$LD_LIBRARY_PATH"
 export BASHLIBS="/wigwag/system/lib/bash/:$BASHLIBS"
-export PYTHONHOME="/usr/lib/python2.7/"
