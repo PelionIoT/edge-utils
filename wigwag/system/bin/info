@@ -17,19 +17,74 @@
 
 #https://github.com/longsleep/build-pine64-image/blob/master/simpleimage/platform-scripts/pine64_health.sh
 #---------------Configuration-------------#
-source ccommon.sh nofunc
+source common.sh nofunc
 
 version="1.5"
 LogToTerm=1
 loglevel=info;
-if [[ -e "/wigwag/system/lib/bash/relaystatics.sh" ]]; then
-	source "/wigwag/system/lib/bash/relaystatics.sh"
-else
-	if [[ -e /userdata/edge_gw_config/identity.json ]]; then
-		/wigwag/system/bin/json2sh /userdata/edge_gw_config/identity.json /wigwag/system/lib/bash/relaystatics.sh
-		source "/wigwag/system/lib/bash/relaystatics.sh"
+regenerateStats=0;
+
+_check_stat_var_set_error=0;
+_check_stat_var_set(){
+	#echo -en "checking $1: "
+	if [[ $1 = "" ]]; then
+		_check_stat_var_set_error=1
 	fi
-fi
+	#echo "$_check_stat_var_set_error"
+}
+
+load_statistics(){
+	if [[ $regenerateStats -eq 1 ]]; then
+		rm -rf /wigwag/system/lib/bash/relaystatics.sh
+
+	fi
+	if [[ -e "/wigwag/system/lib/bash/relaystatics.sh" ]]; then
+		source "/wigwag/system/lib/bash/relaystatics.sh"
+		_check_stat_var_set "$serialNumber"
+		_check_stat_var_set "$OU"
+		_check_stat_var_set "$deviceID"
+		_check_stat_var_set "$hardwareVersion"
+		_check_stat_var_set "$radioConfig"
+		_check_stat_var_set "$ledConfig"
+		_check_stat_var_set "$category"
+		_check_stat_var_set "$ethernetMAC_0"
+		_check_stat_var_set "$ethernetMAC_1"
+		_check_stat_var_set "$ethernetMAC_2"
+		_check_stat_var_set "$ethernetMAC_3"
+		_check_stat_var_set "$ethernetMAC_4"
+		_check_stat_var_set "$ethernetMAC_5"
+		_check_stat_var_set "$sixBMAC_0"
+		_check_stat_var_set "$sixBMAC_1"
+		_check_stat_var_set "$sixBMAC_2"
+		_check_stat_var_set "$sixBMAC_3"
+		_check_stat_var_set "$sixBMAC_4"
+		_check_stat_var_set "$sixBMAC_5"
+		_check_stat_var_set "$sixBMAC_6"
+		_check_stat_var_set "$sixBMAC_7"
+		_check_stat_var_set "$gatewayServicesAddress"
+		_check_stat_var_set "$edgek8sServicesAddress"
+		_check_stat_var_set "$cloudAddress"
+		_check_stat_var_set "$ssl_client_key"
+		_check_stat_var_set "$ssl_client_certificate"
+		_check_stat_var_set "$ssl_server_key"
+		_check_stat_var_set "$åssl_server_certificate"
+		_check_stat_var_set "$ssl_ca_ca"
+		_check_stat_var_set "$ssl_ca_intermediate"
+		if [[ $_check_stat_var_set_error -ne 0 ]]; then
+			echo "error found, relaoding"
+			rm -rf /wigwag/system/lib/bash/relaystatics.sh
+			if [[ -e /userdata/edge_gw_config/identity.json ]]; then
+				/wigwag/system/bin/json2sh /userdata/edge_gw_config/identity.json /wigwag/system/lib/bash/relaystatics.sh
+				source "/wigwag/system/lib/bash/relaystatics.sh"
+			fi
+		fi
+	else
+		if [[ -e /userdata/edge_gw_config/identity.json ]]; then
+			/wigwag/system/bin/json2sh /userdata/edge_gw_config/identity.json /wigwag/system/lib/bash/relaystatics.sh
+			source "/wigwag/system/lib/bash/relaystatics.sh"
+		fi
+	fi
+}
 
 #run eetool
 _ret(){
@@ -141,35 +196,30 @@ system() {
 	MIN15="$(echo $LOAD | awk '{ print $3}')"
 	TASKS="$(echo $LOAD | awk '{ print $4}')"
 	IPADDRESS=$(ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}')
-	test -e /lib/systemd/system/deviceos-wd.service
-	local dwd_file=$?
-	systemctl is-active --quiet deviceos-wd.service
-	local dwd_active=$?
-	systemctl is-enabled --quiet deviceos-wd.service
-	local dwd_enabled=$?
-	if [[ $dwd_active -eq 0 ]]; then
-		WDOGPID="active"
-	elif [[ $dwd_file -ne 0 ]]; then
-		WDOGPID=""
-	elif [[ $dwd_enabled -ne 0 ]]; then
-		WDOGPID="disabled"
-	else
-		WDOGPID=""
-	fi
+	readarray -t IPADDRESSES <<< $IPADDRESS
 	_placeTitle "System Infomation"
 	_placeLine "  - Uptime:" "$UPTIME"
 	_placeLine "  - Users:" "$USERS"
 	_placeLine "  - Load (1,5,15-min avg):" "$MIN1, $MIN5, $MIN15"
 	_placeLine "  - Queued Tasks:" "$TASKS"
-	_placeLine "  - Watchdog:" "$WDOGPID"
-	_placeLine "  - IP Address:" "$IPADDRESS"
+	#_placeLine "  - Watchdog:" "$WDOGPID"
+	IPADDRESSES_len=${#IPADDRESSES[@]}
+	for (( i = 0; i < $IPADDRESSES_len; i++ )); do
+		theip="${IPADDRESSES[$i]}"
+		if [[ "$i" -eq 0 ]]; then
+			_placeLine "  - IP Addresses:" "$theip"
+		else
+			_placeLine "" "$theip"
+		fi
+	done
+	
 }
 
 geo(){
 	_placeTitle "Geographic Information"
 	out=$(curl -m 1 -s ipinfo.io)
 	if [[ "$out" != *"timed"* ]]; then
-		PUBIP=$(echo "$out" | grep ip | awk '{print $2}' | sed -e 's/^"//' -e 's/",$//' -e 's/"$//')
+		PUBIP=$(echo "$out" | grep ip\" | awk '{print $2}' | sed -e 's/^"//' -e 's/",$//' -e 's/"$//')
 		CITY=$(echo "$out" | grep city | awk '{print $2}' | sed -e 's/^"//' -e 's/",$//' -e 's/"$//')
 		REGION=$(echo "$out" | grep region | awk '{print $2}' | sed -e 's/^"//' -e 's/",$//' -e 's/"$//')
 		COUNTRY=$(echo "$out" | grep country | awk '{print $2}' | sed -e 's/^"//' -e 's/",$//' -e 's/"$//')
@@ -370,21 +420,26 @@ _memperf(){
 }
 
 performance(){
-	_placeTitle "Key Process Memory Infomation"
+	_placeTitle "Key Process Memory Infomation (MB)"
 	_placeLine "  Stats in MB and time" "Uptime\t\tPss\tShared\tRss\tVirtual"
-	_memperf "runner" "node /wigwag/devicejs-core-modules/Runner/start.js"
-	_memperf "devicejs-user" "=user"
+	#_memperf "runner" "node /wigwag/devicejs-core-modules/Runner/start.js"
+	#_memperf "devicejs-user" "=user"
 	_memperf "devicejs" "devicejs.conf"
 	_memperf "devicedb" "devicedb.yaml"
-	_memperf "devicejs-modbus" "=modbus"
-	_memperf "devicejs-modules" "=all-modules"
-	_memperf "devicejs-bacnet" "=bacnet"
-	_memperf "devicejs-zigbee" "=zigbee"
-	_memperf "bacportal" "bin/bacportal"
-	_memperf "support-node" "support/index"
+	#_memperf "devicejs-modbus" "=modbus"
+	#_memperf "devicejs-modules" "=all-modules"
+	#_memperf "devicejs-bacnet" "=bacnet"
+	#_memperf "devicejs-zigbee" "=zigbee"
+	#_memperf "bacportal" "bin/bacportal"
+	#_memperf "support-node" "support/index"
 	_memperf "relay-term" "relay-term/src"
-	_memperf "Watchdog" "deviceOS"
+	#_memperf "Watchdog" "deviceOS"
+	_memperf "edge-core" "edge-core"
+	_memperf "edge-proxy" "edge-proxy"
+	_memperf "maestro" "maestro-config.yaml"
+	_memperf "edge-kubelet" "kubelet --root-dir"
 }
+
 memory(){
 	_placeTitle "System Memory"
 	_placeLine "  - Used/Total:" "$USED/$MEM MB\t($UMP%)"
@@ -425,7 +480,7 @@ about(){
 	_placeAbout "  - Rss:" " resident memory useage, all memory the process ueses (includes shared mem)"
 	_placeAbout "  - Shared:" " memory that this process shares with other processes"
 	_placeAbout "  - Privte:" " private memory used by this process, check for mem leaks here"
-	_placeAbout "  - Virtual:" " practically useless, total virtual space for the process"
+	_placeAbout "  - Virtual:" "total virtual space for the process"
 	_placeAbout "  - Referenced: " " ammount of memory current marked as referenced or accessed"
 }
 
@@ -442,6 +497,7 @@ showthesticker(){
 }
 
 main(){
+	load_statistics
 	if [[ $about -eq 1 ]]; then
 		about
 	else
@@ -470,6 +526,7 @@ declare -A hp=(
 	[h]="help"
 	[m]="memory information added"
 	[s]="show qr sticker at the end"
+	[r]="regenerate gateway statics"
 	[e1]="\t${BOLD}${UND}displays vital system information and process data${NORM}\n\t\t$0${NORM}\n"
 	)
 
@@ -482,6 +539,8 @@ argprocessor(){
 			h) COMMON_MENU_HELP; exit; ;;
 			#
 			m) memory=1; ;;
+			#
+			r) regenerateStats=1; ;;
 			#
 			s) showsticker=1; ;;
 			#
