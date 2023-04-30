@@ -15,7 +15,7 @@
         "devjs-configurator": "https://github.com/armPelionEdge/devjs-configurator.git#master",
         "node-hotplug": "https://github.com/armPelionEdge/node-hotplug.git",
         "jsonminify": "^0.2.3",
-        "serialport": "3.1.2",
+        "serialport": "11.0.0",
         "es6-promise": "^3.0.2",
         "mkdirp": "^0.5.1",
         "promise": "^7.0.4",
